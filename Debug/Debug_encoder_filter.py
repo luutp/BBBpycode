@@ -28,17 +28,27 @@ cs_pin   = "P9_11"  # P8.17.
 clk_pin  = "P9_13"  # P8.16 Has to be a CLK Pin?
 data_pin = "P9_15"  # P8.15
 mysensor = SPIencoder(cs_pin, clk_pin, data_pin,10)
-myfilter = uh.uh_filter(2,7,1000,'low')
-raw_angle = []
-filt_angle =[]
+myfilter = uh.uh_filter(2,7,200,'low')
+#raw_angle = np.array([])
+#filt_angle = np.array([])
+#t = np.array([])
 t = []
+raw_angle = []
+filt_angle = []
 t_start = time.clock()
-for i in range(20000):
+for i in range(3000):
     t.append(time.clock()-t_start)
-    print 'Current time: %.3f' %(time.clock()-t_start)
-    raw_angle.append(mysensor.read_angle())
-    filt_angle.append(myfilter.applyFilter(raw_angle))
-    sleep(1/1000.0)
+    currangle = mysensor.read_angle()
+    raw_angle.append(currangle)
+    filt_angle.append(myfilter.applyFilter(currangle))
+#    np.append(t,np.array([time.clock()-t_start]))
+#    print i
+#    print 'Current time: %.3f' %(time.clock()-t_start)
+#    np.append(raw_angle,np.array([mysensor.read_angle()]))
+#    np.append(filt_angle,np.array([myfilter.applyFilter(raw_angle)]))
+#    sleep(1/1000.0)
+#print raw_angle
+print t[-1]
 plt.plot(t,raw_angle,'r')    
 plt.plot(t,filt_angle,'k')
 plt.show()

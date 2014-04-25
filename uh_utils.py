@@ -19,7 +19,7 @@ import os
 import shutil # For copy files
 import gvar_def
 from scipy.signal import butter, tf2ss
-import numpy.matlib as np
+import numpy.matlib as np # Use version later than 1.10
 gvar = gvar_def.gvar()
 expDataDirName = gvar.expDataDirName #'Exp Data'
 expDataDirPath = os.path.join(os.path.abspath(os.pardir),expDataDirName)
@@ -101,8 +101,6 @@ class FileIO:
             trial = max(triallist) + 1
         # Create filename            
         logfile = {} # python dict
-        logfile = {} # python dict
-        logfile = {} # python dict
         for key in logfileKey:
             logfilename = '%s-T%.2d-%s-%s.txt' %(subjID,trial,tdaystr,key)
             logfile[key] = open(os.path.join(subjDirPath,logfilename),'w');
@@ -173,12 +171,35 @@ class uh_filter():
         self.A, self.B, self.C, self.D = tf2ss(self.num,self.den)
         self.Xnn = np.zeros((np.size(self.A,1),1))
     def applyFilter(self,inputSig):
-        filtSig = np.zeros((np.size(inputSig),1))
-        for i in range(np.size(inputSig)):    
-            if np.size(inputSig) == 1: u = inputSig # Handle scalar case
-            else: u = inputSig[i]
+        if np.size(inputSig) == 1: 
+            u = inputSig # Handle scalar case
             myXnn = self.Xnn # get current state
             self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
             ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
-            filtSig[i] = ytemp
+            filtSig = np.asscalar(ytemp)
+        else: 
+            filtSig = [0]*(np.size(inputSig),1)
+            for i in range(np.size(inputSig)):    
+                u = inputSig[i]
+                myXnn = self.Xnn # get current state
+                self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
+                ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+                filtSig[i] = ytemp.tolist()            
         return filtSig
+#==============================================================================
+def quickif(cond, trueval, falseval):
+    '''
+    ifcond is true then retun trueval, 
+    
+    else return false val
+    '''
+    if cond:
+        return trueval
+    else:
+        return falseval
+#==============================================================================
+# Debug 
+#==============================================================================
+if __name__ == "__main__":
+else:
+    pass    

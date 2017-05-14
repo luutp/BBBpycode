@@ -16,47 +16,80 @@
 import datetime
 import pytz
 import os
-#expDataDir = 'Exp Data'
-#subjID = 'UH_AB_01'
-# --------
+import shutil # For copy files
+expDataDirName = 'Exp Data'
+expDataDirPath = os.path.join(os.path.abspath(os.pardir),expDataDirName)
+sdcardLabel = 'BBB_SDCARD'
+sdcardPath = os.path.join('/media',sdcardLabel)
+#==============================================================================
 class timenow:
     def __init__(self):
 #        Datetime data
         temp = datetime.datetime.now(pytz.timezone('US/Central'))
         self.tday = temp.strftime('%y-%m-%d')        
-#####
+#==============================================================================
+class sdcard:
+    def __init__(self,label=sdcardLabel):
+        self.label = label
+        self.path = os.path.join('/media',self.label)
+        self.expDataDirPath = os.path.join(self.path,expDataDirName)
+        self.make_expDataDir();
+    def save_expdata(self,source_folder = expDataDirPath,destination_folder = sdcardPath):        
+        for root, dirs, files in os.walk(source_folder):
+            for item in dirs:
+                dst_path = os.path.join(destination_folder,item)
+                if not os.path.exists(dst_path):
+                    print 'Make: Dir %s' % dst_path
+                    os.mkdir(dst_path)
+                    
+            for item in files:
+                src_path = os.path.join(root,item)
+                ignore,temp = os.path.split(root)
+                dst_path = os.path.join(destination_folder, temp)                
+                shutil.copy2(src_path, dst_path)
+                print 'SAVED: %s' % os.path.join(dst_path,item)
+        print 'DONE: Move Experimental Data to SD card'
+    def cleanup(self):
+        shutil.rmtree(self.expDataDirPath)
+        print 'SD card: %s' % os.listdir(self.path)
+    def make_expDataDir(self):
+        # Make Exp Data folder
+        if not os.path.isdir(self.expDataDirPath):
+            print 'Make: Dir %s on SD Card' %(expDataDirName)
+            os.mkdir(self.expDataDirPath)
+#==============================================================================
 class FileIO:
     def __init__(self,
-                 expDataDir = 'Exp Data', 
+                 expDataDirName = 'Exp Data', 
                  subjID = 'UH_AB_01',
                  logfilekey = ['eeg','kin']):
 #        Initiate data dir and subjID
-        self.expDataDir = expDataDir
+        self.expDataDirName = expDataDirName
         self.subjID = subjID
-        self.logfilekey = logfilekey
-        self.subjdir = self.get_subjdir()
+        self.logfileKey = logfilekey
+        self.subjDirPath = self.get_subjdir()
     def get_subjdir(self):
         currdir = os.path.abspath(os.path.curdir)
         rootdir,temp = os.path.split(currdir)  # luu dir
-        datadir = os.path.join(rootdir,self.expDataDir) # luu\Exp Data dir
-        subjdir = os.path.join(datadir,self.subjID)
-        self.subjdir = subjdir
-        return subjdir
+        self.expDataDirPath = os.path.join(rootdir,self.expDataDirName) # luu\Exp Data dir
+        subjDirPath = os.path.join(self.expDataDirPath,self.subjID)
+        self.subjDirPath = subjDirPath
+        return subjDirPath
     #####    
     def make_expfiles(self):        
         # Working and data directories
-        subjdir = self.subjdir
+        subjDirPath = self.subjDirPath
         subjID = self.subjID
-        logfilekey = self.logfilekey # python list
+        logfileKey = self.logfileKey # python list
         mytime = timenow
         tdaystr = mytime.tday
         # Make Subject Folder
-        if not os.path.isdir(subjdir):
+        if not os.path.isdir(subjDirPath):
             print 'Make: %s folder' %(subjID)
-            os.mkdir(subjdir)
+            os.mkdir(subjDirPath)
         # Create txt data files
         trial = 0
-        filelist = [f for f in os.listdir(subjdir) if os.path.isfile(os.path.join(subjdir,f))]
+        filelist = [f for f in os.listdir(subjDirPath) if os.path.isfile(os.path.join(subjDirPath,f))]
         tdayfilelist = [f for f in filelist if f.find(tdaystr)!=-1]
         # Find latest trial in subject folder
         if tdayfilelist:
@@ -67,8 +100,17 @@ class FileIO:
             trial = max(triallist) + 1
         # Create filename            
         logfile = {} # python dict
-        for key in logfilekey:
+        for key in logfileKey:
             logfilename = '%s-T%.2d-%s-%s.txt' %(subjID,trial,tdaystr,key)
-            logfile[key] = open(os.path.join(subjdir,logfilename),'w');
+            logfile[key] = open(os.path.join(subjDirPath,logfilename),'w');
         self.logfile = logfile
         return logfile
+#==============================================================================
+def list_dirtree(startpath):
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, '').count(os.sep)
+        indent = ' ' * 4 * (level)
+        print('{}{}/'.format(indent, os.path.basename(root)))
+        subindent = ' ' * 4 * (level + 1)
+        for f in files:
+            print('{}{}'.format(subindent, f))

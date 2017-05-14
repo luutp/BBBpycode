@@ -17,16 +17,13 @@ import datetime
 import pytz
 import os
 import shutil # For copy files
-expDataDirName = 'Exp Data'
+import gvar_def
+gvar = gvar_def.gvar()
+expDataDirName = gvar.expDataDirName #'Exp Data'
 expDataDirPath = os.path.join(os.path.abspath(os.pardir),expDataDirName)
-sdcardLabel = 'BBB_SDCARD'
+sdcardLabel = gvar.sdcardLabel #'BBB_SDCARD'
 sdcardPath = os.path.join('/media',sdcardLabel)
-#==============================================================================
-class timenow:
-    def __init__(self):
-#        Datetime data
-        temp = datetime.datetime.now(pytz.timezone('US/Central'))
-        self.tday = temp.strftime('%y-%m-%d')        
+sdcardDataDirPath = os.path.join(sdcardPath,expDataDirName)
 #==============================================================================
 class sdcard:
     def __init__(self,label=sdcardLabel):
@@ -34,12 +31,15 @@ class sdcard:
         self.path = os.path.join('/media',self.label)
         self.expDataDirPath = os.path.join(self.path,expDataDirName)
         self.make_expDataDir();
-    def save_expdata(self,source_folder = expDataDirPath,destination_folder = sdcardPath):        
+    def save_expdata(self,source_folder = expDataDirPath,destination_folder = sdcardDataDirPath):        
+        if not os.path.isdir(destination_folder):
+            print 'MAKE: Dir %s' % destination_folder
+            os.mkdir(destination_folder)
         for root, dirs, files in os.walk(source_folder):
             for item in dirs:
                 dst_path = os.path.join(destination_folder,item)
                 if not os.path.exists(dst_path):
-                    print 'Make: Dir %s' % dst_path
+                    print 'MAKE: Dir %s' % dst_path
                     os.mkdir(dst_path)
                     
             for item in files:
@@ -55,7 +55,7 @@ class sdcard:
     def make_expDataDir(self):
         # Make Exp Data folder
         if not os.path.isdir(self.expDataDirPath):
-            print 'Make: Dir %s on SD Card' %(expDataDirName)
+            print 'MAKE: Dir %s on SD Card' %(expDataDirName)
             os.mkdir(self.expDataDirPath)
 #==============================================================================
 class FileIO:
@@ -81,8 +81,7 @@ class FileIO:
         subjDirPath = self.subjDirPath
         subjID = self.subjID
         logfileKey = self.logfileKey # python list
-        mytime = timenow
-        tdaystr = mytime.tday
+        tdaystr = get_today();
         # Make Subject Folder
         if not os.path.isdir(subjDirPath):
             print 'Make: %s folder' %(subjID)
@@ -104,7 +103,25 @@ class FileIO:
             logfilename = '%s-T%.2d-%s-%s.txt' %(subjID,trial,tdaystr,key)
             logfile[key] = open(os.path.join(subjDirPath,logfilename),'w');
         self.logfile = logfile
-        return logfile
+        return logfile        
+#==============================================================================
+def get_today():
+#        Datetime data
+        temp = datetime.datetime.now(pytz.timezone('US/Central'))
+        tday = temp.strftime('%y-%m-%d')        
+        return tday
+#==============================================================================
+def rmdir(inputDir):
+        if os.path.isdir(inputDir):
+            shutil.rmtree(inputDir)
+            print 'Remove: %s Directory' % inputDir
+            list_dirtree(os.path.dirname(inputDir))
+        else:
+            print 'Not Exist: % Directory' % inputDir
+#==============================================================================
+def savetoSDcard():
+    mysdcard = sdcard(gvar.sdcardLabel)            
+    mysdcard.save_expdata()    
 #==============================================================================
 def list_dirtree(startpath):
     for root, dirs, files in os.walk(startpath):

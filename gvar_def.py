@@ -13,8 +13,8 @@
 # START CODE
 class gvar:
     def __init__(self):
-        gvar.expDataDirName = 'Exp Data'
-        gvar.expDataDirPath = '/root/luu/' + gvar.expDataDirName
-        gvar.sdcardLabel = 'BBB_SDCARD'
-        gvar.sdcardPath = '/media/' + gvar.sdcardLabel        
+        self.expDataDirName = 'Exp Data'
+        self.expDataDirPath = '/root/luu/' + self.expDataDirName
+        self.sdcardLabel = 'BBB_SDCARD'
+        self.sdcardPath = '/media/' + self.sdcardLabel        
     

@@ -16,15 +16,19 @@ import shutil
 import uh_utils as uh
 import gvar_def
 gvar = gvar_def.gvar()
-print gvar.expDataDirName
 
 sdcard = uh.sdcard(gvar.sdcardLabel)
 uh.list_dirtree(sdcard.path)
 
+#Test File IO
+#print uh.get_today()
+myFileIO = uh.FileIO(gvar.expDataDirName,'UH_AB_01',['eeg'])
+logfiles = myFileIO.make_expfiles()
+uh.list_dirtree(myFileIO.expDataDirPath)
+
 #sdcard = uh.sdcard('BBB_SDCARD')
 #print sdcard.path
 #print os.listdir(sdcard.expDataDirPath)
-#myFileIO = uh.FileIO(gvar.expdirname,'UH_AB_01',['eeg'])
 ##print myFileIO.expDataDirPath
 #print sdcard.expDataDirPath
 #sdcard.cleanup()

@@ -15,16 +15,61 @@ import os
 import shutil
 import uh_utils as uh
 import gvar_def
+from time import sleep
 gvar = gvar_def.gvar()
 
-sdcard = uh.sdcard(gvar.sdcardLabel)
-uh.list_dirtree(sdcard.path)
+# BBB GPIO
+import Adafruit_BBIO.GPIO as GPIO
+# Blink LED
+#digOutPin = 'P9_23'
+#GPIO.setup(digOutPin, GPIO.OUT)
+#for i in range(0,3):
+#    GPIO.output(digOutPin, GPIO.HIGH)
+#    sleep(0.5)
+#    GPIO.output(digOutPin, GPIO.LOW)    
+#    sleep(0.5)
 
-#Test File IO
-#print uh.get_today()
-myFileIO = uh.FileIO(gvar.expDataDirName,'UH_AB_01',['eeg'])
-logfiles = myFileIO.make_expfiles()
-uh.list_dirtree(myFileIO.expDataDirPath)
+# Digital Input, 1kOhm register pull down
+#digInPin = 'P9_27'    
+#GPIO.setup(digInPin, GPIO.IN)
+#count = 0
+#while(1):
+#    print "count: %d" %count
+#    count = count + 1
+#    if GPIO.input(digInPin):
+#        print "Button Pressed"            
+#    if count == 10:
+#        break
+#    sleep(1)
+
+# Digital input to turn on LED
+digInPin = 'P9_30'  
+digInPinBreak = 'P9_27'    
+digOutPin = 'P9_23'
+GPIO.setup(digInPin, GPIO.IN)
+GPIO.setup(digInPinBreak, GPIO.IN)
+GPIO.setup(digOutPin, GPIO.OUT)
+while(1):
+    if GPIO.input(digInPinBreak):
+        print "STOP"
+        break
+    if GPIO.input(digInPin):
+        print "Button Pressed"            
+        GPIO.output(digOutPin, GPIO.HIGH) 
+    else:
+        GPIO.output(digOutPin, GPIO.LOW) 
+    sleep(0.1)
+GPIO.cleanup()
+
+
+#sdcard = uh.sdcard(gvar.sdcardLabel)
+#uh.list_dirtree(sdcard.path)
+#
+##Test File IO
+##print uh.get_today()
+#myFileIO = uh.FileIO(gvar.expDataDirName,'UH_AB_01',['eeg'])
+#logfiles = myFileIO.make_expfiles()
+#uh.list_dirtree(myFileIO.expDataDirPath)
 
 #sdcard = uh.sdcard('BBB_SDCARD')
 #print sdcard.path

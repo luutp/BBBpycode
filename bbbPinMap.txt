@@ -1,0 +1,9 @@
+# Neuroleg Project
+# Date: 05/20/2017
+# Authors: Phat Luu and Justin Brantley
+# Lab for Non-invasive Brain-Machine Interface Systems,
+# University of Houston
+# PIN map for Beaglebone Black
+# Peripheral Name(sensors/actuators)	PIN_ID
+SwitchFW	P9_27
+SwitchRW	P9_30

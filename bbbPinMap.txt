@@ -4,6 +4,6 @@
 # Lab for Non-invasive Brain-Machine Interface Systems,
 # University of Houston
 # PIN map for Beaglebone Black
-# Peripheral Name(sensors/actuators)	PIN_ID
-SwitchFW	P9_27
-SwitchRW	P9_30
+# Peripheral Name(sensors/actuators)	PIN_ID	Note
+SwitchFW	P9_27	% Forward limit switch 
+SwitchRW	P9_30	% Reverse limit switch

@@ -16,5 +16,7 @@ class gvar:
         self.expDataDirName = 'Exp Data'
         self.expDataDirPath = '/root/luu/' + self.expDataDirName
         self.sdcardLabel = 'BBB_SDCARD'
-        self.sdcardPath = '/media/' + self.sdcardLabel        
+        self.sdcardPath = '/media/' + self.sdcardLabel   
+        # BBB PIN map
+        self.bbbPIN['SwitchFW'] = "P9_27"
     

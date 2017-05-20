@@ -16,6 +16,7 @@ import shutil
 import uh_utils as uh
 import gvar_def
 from time import sleep
+from sensors import *
 gvar = gvar_def.gvar()
 
 # BBB GPIO
@@ -43,24 +44,24 @@ import Adafruit_BBIO.GPIO as GPIO
 #    sleep(1)
 
 # Digital input to turn on LED
-digInPin = 'P9_30'  
-digInPinBreak = 'P9_27'    
-digOutPin = 'P9_23'
-GPIO.setup(digInPin, GPIO.IN)
-GPIO.setup(digInPinBreak, GPIO.IN)
-GPIO.setup(digOutPin, GPIO.OUT)
-while(1):
-    if GPIO.input(digInPinBreak):
-        print "STOP"
-        break
-    if GPIO.input(digInPin):
-        print "Button Pressed"            
-        GPIO.output(digOutPin, GPIO.HIGH) 
-    else:
-        GPIO.output(digOutPin, GPIO.LOW) 
-    sleep(0.1)
-GPIO.cleanup()
-
+#digInPin = 'P9_30'  
+#digInPinBreak = 'P9_27'    
+#digOutPin = 'P9_23'
+#GPIO.setup(digInPin, GPIO.IN)
+#GPIO.setup(digInPinBreak, GPIO.IN)
+#GPIO.setup(digOutPin, GPIO.OUT)
+#while(1):
+#    if GPIO.input(digInPinBreak):
+#        print "STOP"
+#        break
+#    if GPIO.input(digInPin):
+#        print "Button Pressed"            
+#        GPIO.output(digOutPin, GPIO.HIGH) 
+#    else:
+#        GPIO.output(digOutPin, GPIO.LOW) 
+#    sleep(0.1)
+#GPIO.cleanup()
+#
 
 #sdcard = uh.sdcard(gvar.sdcardLabel)
 #uh.list_dirtree(sdcard.path)
@@ -117,3 +118,13 @@ GPIO.cleanup()
 ##b = np.array([4,5,6])
 #unitmat = 2*np.eye(3);
 #print np.size(unitmat,1)
+print gvar.bbbPIN
+mysensor = digitalSensor("Limit Switch", "P9_27")
+#mysensor = limitSwitch("Limit Switch", gvar.bbbPIN["SwitchFW"])
+#while (1):    
+#    sleep(0.5)
+#    print "Running. Touch the switch to stop"
+#    if mysensor.read():
+#        print "STOP"
+#        break
+#GPIO.cleanup()        

@@ -10,23 +10,24 @@
 """
 # Description: Sensors modules interacts with all sensors that connected
 # to BBB board.
-# Abstract class
 #==============================================================================
 # START CODE
-#from abc import ABCMeta, abstractmethod # Package to create abstrat class
 import Adafruit_BBIO.GPIO as GPIO
-from time import sleep
+import Adafruit_BBIO.ADC as ADC
 from uh_classtools import AttrDisplay # In uh_classtools.py file
+#==============================================================================
+# sensor is a parent class
 class sensor(AttrDisplay):
-    # sensor is a parent class
     def __init__(self, name, sensortype,inputPIN):
         self.name = name
         self.type = sensortype
         self.inputPIN = inputPIN
         self.eventEnable = 0
     def sensor_Callback(self,channel):
-        print self.name + " is HIGH"
-# Digital Sensor class to handle digital input        
+        print self.name + ": event Callback"
+#==============================================================================
+# Digital Sensor
+#==============================================================================
 class digitalSensor(sensor):
     def __init__(self,name,inputPIN):
         sensor.__init__(self,name,'Digital',inputPIN) #Init by parent class
@@ -43,18 +44,23 @@ class digitalSensor(sensor):
     def read(self):
         GPIO.setup(self.inputPIN, GPIO.IN)
         return GPIO.input(self.inputPIN)
-    
-
+#==============================================================================
 class limitSwitch(digitalSensor):
     def __init__(self,name,inputPIN):
         digitalSensor.__init__(self,name,inputPIN)
     def sensor_Callback(self,channel):
         print self.name + "is Activated. CallbackFcn is called"
-        
-
-
-        
-        
+#==============================================================================
+# Analog sensors
+#==============================================================================
+class analogSensor(sensor):
+    def __init__(self,name,inputPIN):
+        sensor.__init__(self,name,'Analog',inputPIN) #Init by parent class
+        self.setup()        
+    def setup(self):
+        ADC.setup()
+    def read(self):        
+        return ADC.read(self.inputPIN)        
 
 
 

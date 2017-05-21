@@ -118,13 +118,39 @@ import Adafruit_BBIO.GPIO as GPIO
 ##b = np.array([4,5,6])
 #unitmat = 2*np.eye(3);
 #print np.size(unitmat,1)
-print gvar.bbbPIN
-mysensor = digitalSensor("Limit Switch", "P9_27")
-#mysensor = limitSwitch("Limit Switch", gvar.bbbPIN["SwitchFW"])
+#print gvar.bbbPIN
+#mysensor = digitalSensor("Limit Switch", "P9_27")
+#print gvar.bbbPin
+#mysensor = limitSwitch("Limit Switch", gvar.bbbPin["SwitchFW"])
+#mypot = analogSensor("Potentionmeter","P9_36")
 #while (1):    
 #    sleep(0.5)
-#    print "Running. Touch the switch to stop"
+#    print mypot.read()
 #    if mysensor.read():
 #        print "STOP"
 #        break
 #GPIO.cleanup()        
+
+#mygvar = gvar
+#print mygvar.bbbPinmapfilename
+#mygvar.bbbPinDef()
+#print mygvar.bbbPin
+
+#num,den =  uh.highpass(4,6,100)
+from scipy.signal import butter, tf2ss
+#passband = [0.75*2/30, 5.0*2/30]
+#b, a = butter(4,6 / (100*0.5), 'high')
+#print b 
+#print a
+#print butter(5,[3/50, 6/50],'bandpass')
+#print ['%.4f' % i for i in num]
+#print ['%.4f' % i for i in den]
+num, den = uh.highpass(4,6,100)
+print num
+print den
+print tf2ss(num,den)
+#print tf2ss(den,num)
+#print A
+#print B
+#print C
+#print D

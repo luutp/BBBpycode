@@ -18,6 +18,7 @@ import pytz
 import os
 import shutil # For copy files
 import gvar_def
+from scipy.signal import butter, tf2ss
 gvar = gvar_def.gvar()
 expDataDirName = gvar.expDataDirName #'Exp Data'
 expDataDirPath = os.path.join(os.path.abspath(os.pardir),expDataDirName)
@@ -131,3 +132,12 @@ def list_dirtree(startpath):
         subindent = ' ' * 4 * (level + 1)
         for f in files:
             print('{}{}'.format(subindent, f))
+#==============================================================================
+# Signal processor
+#==============================================================================
+def highpass(order, cutoff, Fs):
+    Wn = Fs*0.5 # Nyquist Freq. Float type
+    cutoff_norm = cutoff/Wn # Normalize to Nyq freq
+    num, den = butter(order, cutoff_norm, btype = 'high')    
+#    A, B, C, D = tf2ss(num,den)
+    return num, den

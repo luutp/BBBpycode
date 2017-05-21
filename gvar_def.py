@@ -11,12 +11,28 @@
 # Description:
 #==============================================================================
 # START CODE
-class gvar:
+import os
+#==============================================================================
+class gvar():
     def __init__(self):
         self.expDataDirName = 'Exp Data'
         self.expDataDirPath = '/root/luu/' + self.expDataDirName
         self.sdcardLabel = 'BBB_SDCARD'
         self.sdcardPath = '/media/' + self.sdcardLabel   
+        self.bbbPinmapfilename = 'bbbPinMap.txt' # txt file in curdir
+        self.bbbPin = {} # Initate empty dictionary
+        self.bbbPinDef()
         # BBB PIN map
-        self.bbbPIN['SwitchFW'] = "P9_27"
-    
+    def bbbPinDef(self):
+        txtfilepath = os.path.join(os.path.curdir,self.bbbPinmapfilename)
+        # Open text file
+        with open(txtfilepath) as fid:
+            for line in fid:
+                # Skip comment lines in txt file
+                if (line[0] != '#'): 
+                    # Split line by \t deliminiter
+                    name, pinID, note = line.split('\t')                    
+                    # Save to a dict variable
+                    self.bbbPin[name] = pinID
+        
+        

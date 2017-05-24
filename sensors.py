@@ -14,6 +14,7 @@
 # START CODE
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.ADC as ADC
+from bbio import * # Use pyBBIO library.
 from uh_utils import AttrDisplay # In uh_classtools.py file
 #==============================================================================
 # sensor is a parent class
@@ -61,7 +62,48 @@ class analogSensor(sensor):
         ADC.setup()
     def read(self):        
         return ADC.read(self.inputPIN)        
-
-
-
+#==============================================================================
+# Sensors that use SPI interface
+#==============================================================================
+class SPIsensor(sensor):
+    def __init__(self, dataPin, clkPin, csPin, nBits, sigRange):
+        '''
+        dataPin: SPI input Pin on BBB
+        clkPin : SPI_SCLK Pin on BBB, clock pin
+        csPin : SPI_CS pin on BBB, chip select pin in SPI interface
+        nBits: number of bits from sensor, define its resolution.
+        sigRange: Range of the actual signal that we want to measure, e.g., 360 deg
+        '''
+        # Define PIN IO
+        self.dataPin = dataPin
+        self.clkPin = clkPin
+        self.csPin = csPin
+        self.nBits = nBits
+        self.sigRange = sigRange
+        pinMode(self.dataPin,INPUT) # Set dataPin as INPUT using pinMode func in bbio
+        pinMode(self.clkPin,OUTPUT)
+        digitalWrite(self.clkPin,HIGH) # Idle state for cs and clk
+        pinMode(self.csPin,OUTPUT)        
+        digitalWrite(self.csPin,HIGH)
+        # Compute sensor resolution
+        self.res = float(self.sigRange)/(2**self.nBits)
+    def read(self):
+        # This follow SPI interface serial communication.
+        digitalWrite(self.csPin, LOW) # Standard SPI, pull CS to low
+        value = shiftIn(self.dataPin, self.clkPin, MSBFIRST)
+        # shiftIn is a built-in func from bbio, ref: Arduino shiftIn
+        digitalWrite(self.csPin, HIGH)
+        return value
+#==============================================================================
+class SPIencoder(SPIsensor):
+    def __init__(self,dataPin,clkPin,csPin,nBits):
+        SPIsensor.__init__(self,dataPin,clkPin,csPin,nBits,360) #Init by parent class
+    def readEncoder(self):
+        rawvalue = self.read()
+        angle = rawvalue * self.res
+        return angle
+        
+    
+        
+                
 

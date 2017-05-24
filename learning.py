@@ -195,4 +195,20 @@ data_pin = GPIO1_15  # P8.15
 clk_pin  = GPIO1_14  # P8.16
 cs_pin   = GPIO0_27  # P8.17
 myencoder = SPIencoder(data_pin, clk_pin, cs_pin,10)
-print myencoder.readEncoder()
+digInPin = GPIO3_16 #'P9_30'  
+DigInPinBreak = GPIO3_19 #'P9_27'    
+digOutPin = GPIO1_17 #'P9_23'
+pinMode(digInPin, INPUT)
+pinMode(digInPinBreak, INPUT)
+pinMode(digOutPin, OUTPUT)
+while(1):
+    if digitalRead(digInPinBreak):
+        print "STOP"
+        break
+    if digitalRead(digInPin):
+        print "Button Pressed"            
+        digitalWrite(digOutPin, HIGH) 
+    else:
+        digitalWrite(digOutPin, LOW) 
+    print myencoder.readEncoder()
+    sleep(0.1)    

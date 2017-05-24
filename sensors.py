@@ -16,6 +16,7 @@ import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.ADC as ADC
 from bbio import * # Use pyBBIO library.
 from uh_utils import AttrDisplay # In uh_classtools.py file
+import numpy as np
 #==============================================================================
 # sensor is a parent class
 class sensor(AttrDisplay):
@@ -89,12 +90,15 @@ class SPIsensor(sensor):
         # This follow SPI interface serial communication.        
         digitalWrite(self.clkPin, LOW)
         digitalWrite(self.csPin, LOW)
+	raw_value = 0
+	inputstream = 0
         for i in range(17):
             digitalWrite(self.clkPin, HIGH)
             delay(10)
             inputstream = digitalRead(self.dataPin)
+	    print inputstream
             raw_value = ((raw_value << 1) + inputstream);
-            digitalWrite(_clock, LOW);
+            digitalWrite(self.clkPin, LOW);
         return raw_value
 #==============================================================================
 class SPIencoder(SPIsensor):
@@ -102,7 +106,7 @@ class SPIencoder(SPIsensor):
         SPIsensor.__init__(self,dataPin,clkPin,csPin,nBits,360) #Init by parent class
     def readEncoder(self):
         rawvalue = self.read()
-        angle = rawvalue>>(18-self.nBits) * self.res
+        angle = rawvalue # Right shift to 8 bits and times res
         return angle
         
     

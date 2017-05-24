@@ -20,7 +20,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy.matlib as np
 from scipy.signal import butter, tf2ss, lfilter, filtfilt
-#from sensors import *
+from sensors import *
 gvar = gvar_def.gvar()
 
 # BBB GPIO
@@ -161,30 +161,38 @@ gvar = gvar_def.gvar()
 #==============================================================================
 # 
 #==============================================================================
-Fs = 100
-t = np.arange(0,5,1.0/Fs)
-actual_signal = [10*np.cos(6*2*(np.pi)*ti) for ti in t]
-noise = [5*np.cos(40*2*(np.pi)*ti) for ti in t]
-rawSig = np.add(actual_signal,noise)
-myfilter = uh.uh_filter(2,[0.1,7],100,'bandpass')
-filtSig = np.zeros((np.size(rawSig),1))
-for i in range(0,np.size(rawSig)):    
-#    print myfilter.Xnn
-    filtSig[i] = myfilter.applyFilter(rawSig[i])
-#num,den = butter(2, 7/(100*0.5), 'low')
-#[A,B,C,D] = tf2ss(num,den)
-#Xnn = np.zeros((np.size(A,1),1))
+#Fs = 100
+#t = np.arange(0,5,1.0/Fs)
+#actual_signal = [10*np.cos(6*2*(np.pi)*ti) for ti in t]
+#noise = [5*np.cos(40*2*(np.pi)*ti) for ti in t]
+#rawSig = np.add(actual_signal,noise)
+#myfilter = uh.uh_filter(2,[0.1,7],100,'bandpass')
 #filtSig = np.zeros((np.size(rawSig),1))
 #for i in range(0,np.size(rawSig)):    
-#    u = rawSig[i]
-#    myXnn = Xnn
-#    Xn = np.add(np.matmul(A,myXnn), B*u)
-#    ytemp = np.add(np.matmul(C,myXnn), D*u)
-#    filtSig[i] = ytemp
-#    Xnn = Xn
-#filtered_signal = lfilter(num,den,rawSig)
-plt.plot(t,rawSig,'b')
-plt.plot(t,actual_signal,'r',linewidth = 1.5)
-plt.plot(t,filtSig,'k--')
-#plt.plot(t,filtered_signal,'g--')
-plt.show()
+##    print myfilter.Xnn
+#    filtSig[i] = myfilter.applyFilter(rawSig[i])
+##num,den = butter(2, 7/(100*0.5), 'low')
+##[A,B,C,D] = tf2ss(num,den)
+##Xnn = np.zeros((np.size(A,1),1))
+##filtSig = np.zeros((np.size(rawSig),1))
+##for i in range(0,np.size(rawSig)):    
+##    u = rawSig[i]
+##    myXnn = Xnn
+##    Xn = np.add(np.matmul(A,myXnn), B*u)
+##    ytemp = np.add(np.matmul(C,myXnn), D*u)
+##    filtSig[i] = ytemp
+##    Xnn = Xn
+##filtered_signal = lfilter(num,den,rawSig)
+#plt.plot(t,rawSig,'b')
+#plt.plot(t,actual_signal,'r',linewidth = 1.5)
+#plt.plot(t,filtSig,'k--')
+##plt.plot(t,filtered_signal,'g--')
+#plt.show()
+
+# Test encoder
+# Set variables for the pins connected to the ADC:
+data_pin = GPIO1_15  # P8.15
+clk_pin  = GPIO1_14  # P8.16
+cs_pin   = GPIO0_27  # P8.17
+myencoder = SPIencoder(data_pin, clk_pin, cs_pin,10)
+print myencoder.readEncoder()

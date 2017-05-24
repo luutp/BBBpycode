@@ -16,11 +16,15 @@ import shutil
 import uh_utils as uh
 import gvar_def
 from time import sleep
-from sensors import *
+import math
+import matplotlib.pyplot as plt
+import numpy.matlib as np
+from scipy.signal import butter, tf2ss, lfilter, filtfilt
+#from sensors import *
 gvar = gvar_def.gvar()
 
 # BBB GPIO
-import Adafruit_BBIO.GPIO as GPIO
+#import Adafruit_BBIO.GPIO as GPIO
 # Blink LED
 #digOutPin = 'P9_23'
 #GPIO.setup(digOutPin, GPIO.OUT)
@@ -137,7 +141,6 @@ import Adafruit_BBIO.GPIO as GPIO
 #print mygvar.bbbPin
 
 #num,den =  uh.highpass(4,6,100)
-from scipy.signal import butter, tf2ss
 #passband = [0.75*2/30, 5.0*2/30]
 #b, a = butter(4,6 / (100*0.5), 'high')
 #print b 
@@ -145,12 +148,43 @@ from scipy.signal import butter, tf2ss
 #print butter(5,[3/50, 6/50],'bandpass')
 #print ['%.4f' % i for i in num]
 #print ['%.4f' % i for i in den]
-num, den = uh.highpass(4,6,100)
-print num
-print den
-print tf2ss(num,den)
+#num, den = uh.highpass(4,6,100)
+#print num, den
+#print num
+#print den
+#print tf2ss(num,den)
 #print tf2ss(den,num)
 #print A
 #print B
 #print C
 #print D
+#==============================================================================
+# 
+#==============================================================================
+Fs = 100
+t = np.arange(0,5,1.0/Fs)
+actual_signal = [10*np.cos(6*2*(np.pi)*ti) for ti in t]
+noise = [5*np.cos(40*2*(np.pi)*ti) for ti in t]
+rawSig = np.add(actual_signal,noise)
+myfilter = uh.uh_filter(2,[0.1,7],100,'bandpass')
+filtSig = np.zeros((np.size(rawSig),1))
+for i in range(0,np.size(rawSig)):    
+#    print myfilter.Xnn
+    filtSig[i] = myfilter.applyFilter(rawSig[i])
+#num,den = butter(2, 7/(100*0.5), 'low')
+#[A,B,C,D] = tf2ss(num,den)
+#Xnn = np.zeros((np.size(A,1),1))
+#filtSig = np.zeros((np.size(rawSig),1))
+#for i in range(0,np.size(rawSig)):    
+#    u = rawSig[i]
+#    myXnn = Xnn
+#    Xn = np.add(np.matmul(A,myXnn), B*u)
+#    ytemp = np.add(np.matmul(C,myXnn), D*u)
+#    filtSig[i] = ytemp
+#    Xnn = Xn
+#filtered_signal = lfilter(num,den,rawSig)
+plt.plot(t,rawSig,'b')
+plt.plot(t,actual_signal,'r',linewidth = 1.5)
+plt.plot(t,filtSig,'k--')
+#plt.plot(t,filtered_signal,'g--')
+plt.show()

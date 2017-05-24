@@ -19,6 +19,7 @@ import os
 import shutil # For copy files
 import gvar_def
 from scipy.signal import butter, tf2ss
+import numpy.matlib as np
 gvar = gvar_def.gvar()
 expDataDirName = gvar.expDataDirName #'Exp Data'
 expDataDirPath = os.path.join(os.path.abspath(os.pardir),expDataDirName)
@@ -133,11 +134,49 @@ def list_dirtree(startpath):
         for f in files:
             print('{}{}'.format(subindent, f))
 #==============================================================================
+# Attribute display class: Use this as a parent class to overload print method            
+#==============================================================================
+class AttrDisplay:
+    '''
+    Use this as a parent class to overload display method for class.\n
+    '''
+    def gatherAttrs(self):
+        attrs = []
+        for key in sorted(self.__dict__):
+            attrs.append('%s=%s' % (key, getattr(self, key)))
+        return ', '.join(attrs)
+    def __str__(self):
+        return '[%s: %s]' % (self.__class__.__name__, self.gatherAttrs())
+
+#==============================================================================
 # Signal processor
 #==============================================================================
-def highpass(order, cutoff, Fs):
-    Wn = Fs*0.5 # Nyquist Freq. Float type
-    cutoff_norm = cutoff/Wn # Normalize to Nyq freq
-    num, den = butter(order, cutoff_norm, btype = 'high')    
-#    A, B, C, D = tf2ss(num,den)
-    return num, den
+class uh_filter():
+    '''
+    #====DESCRIPTION:\n
+    Filter raw signal in real time manner, 1 input, 1 output.\n
+    Note: Instantiate the filter before while() or for loop.\n
+    #====INPUT:\n
+    order: order of Butterworth filter. The larger, the stronger attenuation but longer time delay.\n
+    cutoff: Take scalar value for high and low-pass fitler, 2-element vector if band-pass filter is used.\n
+    Fs: Sampling frequency of raw signal.\n    
+    filtertype: 'low', 'high', or 'bandpass'
+    '''
+    def __init__(self,order,cutoff,Fs,filtertype):
+        self.order = order
+        self.Fs = Fs
+        self.Wn = self.Fs*0.5 # Time 0.5 to create float type
+        self.type = filtertype;
+        self.num, self.den = butter(self.order,np.divide(cutoff,self.Wn),self.type)
+        self.A, self.B, self.C, self.D = tf2ss(self.num,self.den)
+        self.Xnn = np.zeros((np.size(self.A,1),1))
+    def applyFilter(self,inputSig):
+        filtSig = np.zeros((np.size(inputSig),1))
+        for i in range(np.size(inputSig)):    
+            if np.size(inputSig) == 1: u = inputSig # Handle scalar case
+            else: u = inputSig[i]
+            myXnn = self.Xnn # get current state
+            self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
+            ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+            filtSig[i] = ytemp
+        return filtSig

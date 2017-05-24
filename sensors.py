@@ -14,7 +14,7 @@
 # START CODE
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.ADC as ADC
-from uh_classtools import AttrDisplay # In uh_classtools.py file
+from uh_utils import AttrDisplay # In uh_classtools.py file
 #==============================================================================
 # sensor is a parent class
 class sensor(AttrDisplay):

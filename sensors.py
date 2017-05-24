@@ -82,25 +82,27 @@ class SPIsensor(sensor):
         self.sigRange = sigRange
         pinMode(self.dataPin,INPUT) # Set dataPin as INPUT using pinMode func in bbio
         pinMode(self.clkPin,OUTPUT)
-        digitalWrite(self.clkPin,HIGH) # Idle state for cs and clk
         pinMode(self.csPin,OUTPUT)        
-        digitalWrite(self.csPin,HIGH)
         # Compute sensor resolution
         self.res = float(self.sigRange)/(2**self.nBits)
     def read(self):
-        # This follow SPI interface serial communication.
-        digitalWrite(self.csPin, LOW) # Standard SPI, pull CS to low
-        value = shiftIn(self.dataPin, self.clkPin, MSBFIRST)
-        # shiftIn is a built-in func from bbio, ref: Arduino shiftIn
-        digitalWrite(self.csPin, HIGH)
-        return value
+        # This follow SPI interface serial communication.        
+        digitalWrite(self.clkPin, LOW)
+        digitalWrite(self.csPin, LOW)
+        for i in range(17):
+            digitalWrite(self.clkPin, HIGH)
+            delay(10)
+            inputstream = digitalRead(self.dataPin)
+            raw_value = ((raw_value << 1) + inputstream);
+            digitalWrite(_clock, LOW);
+        return raw_value
 #==============================================================================
 class SPIencoder(SPIsensor):
     def __init__(self,dataPin,clkPin,csPin,nBits):
         SPIsensor.__init__(self,dataPin,clkPin,csPin,nBits,360) #Init by parent class
     def readEncoder(self):
         rawvalue = self.read()
-        angle = rawvalue * self.res
+        angle = rawvalue>>(18-self.nBits) * self.res
         return angle
         
     

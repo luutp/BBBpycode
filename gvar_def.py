@@ -11,7 +11,9 @@
 # Description:
 #==============================================================================
 # START CODE
-import os
+import os, inspect
+# Currdir is the directory of THIS file
+currdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 #==============================================================================
 class gvar():
     def __init__(self):
@@ -24,7 +26,7 @@ class gvar():
         self.bbbPinDef()
         # BBB PIN map
     def bbbPinDef(self):
-        txtfilepath = os.path.join(os.path.curdir,self.bbbPinmapfilename)
+        txtfilepath = os.path.join(currdir,self.bbbPinmapfilename)
         # Open text file
         with open(txtfilepath) as fid:
             for line in fid:

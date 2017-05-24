@@ -101,6 +101,8 @@ class FileIO:
             trial = max(triallist) + 1
         # Create filename            
         logfile = {} # python dict
+        logfile = {} # python dict
+        logfile = {} # python dict
         for key in logfileKey:
             logfilename = '%s-T%.2d-%s-%s.txt' %(subjID,trial,tdaystr,key)
             logfile[key] = open(os.path.join(subjDirPath,logfilename),'w');

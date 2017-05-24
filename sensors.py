@@ -12,8 +12,8 @@
 # to BBB board.
 #==============================================================================
 # START CODE
-import Adafruit_BBIO.GPIO as GPIO
-import Adafruit_BBIO.ADC as ADC
+#import Adafruit_BBIO.GPIO as GPIO
+#import Adafruit_BBIO.ADC as ADC
 from bbio import * # Use pyBBIO library.
 from uh_utils import AttrDisplay # In uh_classtools.py file
 import numpy as np
@@ -35,17 +35,21 @@ class digitalSensor(sensor):
         sensor.__init__(self,name,'Digital',inputPIN) #Init by parent class
         self.setup()        
     def setup(self):
-        GPIO.setup(self.inputPIN, GPIO.IN)
+#        GPIO.setup(self.inputPIN, GPIO.IN)
+        pinMode(self.inputPIN, INPUT)
         if not self.eventEnable:
             self.addEvent()
     # Add event. When event happens, callback function is called.
     def addEvent(self):
-        GPIO.add_event_detect(self.inputPIN,GPIO.RISING, 
-                              callback = self.sensor_Callback,bouncetime = 200)
+#        GPIO.add_event_detect(self.inputPIN,GPIO.RISING, 
+#                              callback = self.sensor_Callback,bouncetime = 200)
+        attachInterrupt(self.inputPIN, callback = self.sensor_Callback, edge = BOTH)
         self.eventEnable = 1    
     def read(self):
-        GPIO.setup(self.inputPIN, GPIO.IN)
-        return GPIO.input(self.inputPIN)
+#        GPIO.setup(self.inputPIN, GPIO.IN)
+#        return GPIO.input(self.inputPIN)'
+        pinMode(self.inputPIN, INPUT)
+        return digitalRead(self.inputPIN)
 #==============================================================================
 class limitSwitch(digitalSensor):
     def __init__(self,name,inputPIN):
@@ -60,9 +64,11 @@ class analogSensor(sensor):
         sensor.__init__(self,name,'Analog',inputPIN) #Init by parent class
         self.setup()        
     def setup(self):
-        ADC.setup()
+#        ADC.setup()
+        pass
     def read(self):        
-        return ADC.read(self.inputPIN)        
+#        return ADC.read(self.inputPIN)        
+        return analogRead(self.inputPIN)
 #==============================================================================
 # Sensors that use SPI interface
 #==============================================================================

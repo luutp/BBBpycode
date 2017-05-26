@@ -12,11 +12,11 @@
 # to BBB board.
 #==============================================================================
 # START CODE
-#import Adafruit_BBIO.GPIO as GPIO
-#import Adafruit_BBIO.ADC as ADC
+import Adafruit_BBIO.GPIO as GPIO
+import Adafruit_BBIO.ADC as ADC
 from bbio import * # Use pyBBIO library.
 from uh_utils import AttrDisplay # In uh_classtools.py file
-import numpy as np
+from time import sleep
 #==============================================================================
 # sensor is a parent class
 class sensor(AttrDisplay):
@@ -72,8 +72,8 @@ class analogSensor(sensor):
 #==============================================================================
 # Sensors that use SPI interface
 #==============================================================================
-class SPIsensor(sensor):
-    def __init__(self, dataPin, clkPin, csPin, nBits, sigRange):
+class SPIsensor():
+    def __init__(self, csPin, clkPin, dataPin, nBits, sigRange):
         '''
         dataPin: SPI input Pin on BBB
         clkPin : SPI_SCLK Pin on BBB, clock pin
@@ -82,38 +82,47 @@ class SPIsensor(sensor):
         sigRange: Range of the actual signal that we want to measure, e.g., 360 deg
         '''
         # Define PIN IO
-        self.dataPin = dataPin
-        self.clkPin = clkPin
         self.csPin = csPin
+        self.clkPin = clkPin
+        self.dataPin = dataPin
         self.nBits = nBits
         self.sigRange = sigRange
-        pinMode(self.dataPin,INPUT) # Set dataPin as INPUT using pinMode func in bbio
-        pinMode(self.clkPin,OUTPUT)
-        pinMode(self.csPin,OUTPUT)        
+        GPIO.setup(self.csPin,GPIO.OUT)
+        GPIO.setup(self.clkPin,GPIO.OUT)
+        GPIO.setup(self.dataPin,GPIO.IN)
+#        pinMode(self.csPin,OUTPUT)        
+#        pinMode(self.clkPin,OUTPUT)
+#        pinMode(self.dataPin,INPUT) # Set dataPin as INPUT using pinMode func in bbio
         # Compute sensor resolution
         self.res = float(self.sigRange)/(2**self.nBits)
     def read(self):
         # This follow SPI interface serial communication.        
-        digitalWrite(self.clkPin, LOW)
-        digitalWrite(self.csPin, LOW)
-	raw_value = 0
-	inputstream = 0
-        for i in range(17):
-            digitalWrite(self.clkPin, HIGH)
-            delay(10)
-            inputstream = digitalRead(self.dataPin)
-	    print inputstream
-            raw_value = ((raw_value << 1) + inputstream);
-            digitalWrite(self.clkPin, LOW);
+        GPIO.output(self.csPin, GPIO.HIGH)
+        GPIO.output(self.clkPin, GPIO.HIGH)
+        sleep(1/1000000.0)
+        GPIO.output(self.csPin, GPIO.LOW)
+        GPIO.output(self.clkPin, GPIO.LOW)
+        sleep(1/1000000.0)
+        raw_value = 0
+        inputstream = 0    
+        for i in range(16):
+            GPIO.output(self.clkPin, GPIO.HIGH)
+            sleep(1/1000000.0)
+            inputstream = GPIO.input(self.dataPin)
+            raw_value = raw_value*2 + inputstream
+            GPIO.output(self.clkPin, GPIO.LOW)
+            sleep(1/1000000.0)
         return raw_value
 #==============================================================================
 class SPIencoder(SPIsensor):
-    def __init__(self,dataPin,clkPin,csPin,nBits):
-        SPIsensor.__init__(self,dataPin,clkPin,csPin,nBits,360) #Init by parent class
-    def readEncoder(self):
+    def __init__(self,csPin, clkPin, dataPin,nBits):
+        SPIsensor.__init__(self,csPin, clkPin, dataPin,nBits,360) #Init by parent class
+    def read_angle(self):
         rawvalue = self.read()
-        angle = rawvalue # Right shift to 8 bits and times res
-        return angle
+        return rawvalue/2**(16-self.nBits)*self.res
+#        print rawvalue
+#        angle = rawvalue # Right shift to 8 bits and times res        
+#        return angle
         
     
         

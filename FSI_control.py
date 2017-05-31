@@ -1,13 +1,6 @@
 """
  Description:
      
-     Finite state impedence controller for powered knee prosthetic leg.
-     
-     Include: Finite State machine class for gait phase transition rule
-     
-     An impedance controller to compute torque and current
-     
-     
  Author: Trieu Phat Luu
  
  Lab for Non-invasive Brain-Machine Interface systems,
@@ -15,7 +8,7 @@
  
  Email: tpluu2207@gmail.com
  
- Created on Thu Apr 24 04:00:14 2014
+ Created on Sun May 28 19:23:57 2017
 """
 #==============================================================================
 # START CODE
@@ -36,18 +29,47 @@ class FSM():
         # Locomotion mode or walking terrain
         self.mode = mode
         self.phase = phase
-        standmat = np.zeros([3,2])
-        walkmat = np.zeros([3,5])
-        self.modephase = dict(zip(self.mode,self.phase))    
-        self.modemat = dict(zip(self.mode,(standmat,walkmat)))
-        self.state = [0,0]
+        self.modemat = dict(zip(self.mode,(np.zeros([3,2]),np.zeros([3,5]))))
+    @property
+    def modephase(self):
+        return dict(zip(self.mode,self.phase))    
+    @property
+    def state(self):
+        return [0,0]    
+    @property
+    def stateIC(self):
+        modeICmat = self.modemat[self.mode[self.state[0]]]
+        stateIC = modeICmat[:,self.state[1]]
+        return stateIC
+    def setModeICmat(self, mode, modeICmat):
+        # Set Impedent components for a given walking mode
+        #           Phase1  Phase2  ...
+        # Impedance
+        # Damping
+        # eqPos: Equilibrium position
+        self.modemat[mode] = modeICmat
+    def getModeICmat(self,mode = 'walk'):
+        modeICmat = self.modemat[mode]
+        return modeICmat
+    def getstateIC(self):
+        # IC of current state (walking mode, current phase)
+        modeICmat = self.modemat[self.mode[self.state[0]]]
+        stateIC = modeICmat[:,self.state[1]]
+        return stateIC
     def getModePhaseName(self):
+        # Print out all the walking mode and phases in each mode
         mode = self.mode[self.state[0]]
         allphase = self.modephase[mode]
         phase = allphase[self.state[1]]
         return mode,phase
     def update(self): 
+        # Update current state based o foot sensors data.
         pass
+    def stateupdate(self,stateInput):
+        self.state = stateInput
+        modeICmat = self.modemat[self.mode[self.state[0]]]
+        stateIC = modeICmat[:,self.state[1]]
+        self.stateIC = stateIC
 #==============================================================================
 class impedanceController(dict):
     '''
@@ -146,8 +168,17 @@ if __name__ == "__main__":
     print this.modephase
     print this.modemat
     print this.getModePhaseName()
-    this.state = [1,2]
-    print this.getModePhaseName()
+    # WalkICmode obtained from Huang et al. paper
+    walkICmode = np.array([[2, 3, 1, 1, 1],
+                           [0.05, 0.05, 0.01, 0.01, 0.01],
+                           [5, 10, 45, 60, 10]]);
+    this.setModeICmat(this.mode[1],walkICmode)                           
+    walkICmode = this.getModeICmat(mode = 'walk')
+    print walkICmode
+#    this.state = [1,2]   
+    this.stateupdate([1,2])
+    print this.state
+    print this.modemat
+    print this.stateIC
 else:
     pass
-        

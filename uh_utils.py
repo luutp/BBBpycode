@@ -201,5 +201,6 @@ def quickif(cond, trueval, falseval):
 # Debug 
 #==============================================================================
 if __name__ == "__main__":
+    pass
 else:
     pass    

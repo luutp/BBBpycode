@@ -157,28 +157,85 @@ class impedanceController(dict):
         self.torque = stiffness*math.radians(jointangle-eqPos) + damping*jointvel
         return self.torque
 #==============================================================================
+class cirBuffer(object): # Inherit object class for getter, setter style
+    '''
+    Circular buffer.
+    
+    mybuffer = cirBuffer(size)
+    '''
+    def __init__(self, size):
+        self.size = size
+        self._data = [None for i in xrange(self.size)]
+    @property 
+    def data(self):     #Getter
+        return self._data
+    @property
+    def mean(self):
+        if not None in self.data:
+            self._mean = sum(self.data)/float(self.size)
+        else:
+            self._mean = None
+        return self._mean
+    ####
+    def append(self,x):
+        # The lastest data point is the last element
+        self.data.pop(0)
+        self.data.append(x)        
+    def getLast(self):
+        # Get last element in the buffer
+        return self.data[-1]    
+    def isAscend(self):
+        # Check if the buffer signal is ascending
+        for i in xrange(self.size-1):
+            if self.data[i] > self.data[i+1]:
+                return False
+        return True
+    def isDescend(self):
+        # Check if the buffer signal is Descending
+        for i in xrange(self.size-1):
+            if self.data[i] < self.data[i+1]:
+                return False
+        return True
+    def isZeroCross(self):
+        # Check if there is zero crossing
+        result = False        
+        if not None in self.data: # Run only when all data are not None
+            if (self.data[-2]*self.data[-1] <= 0):
+                result = True
+        return result
+#==============================================================================
 #  Debug 
 #==============================================================================
 if __name__ == "__main__":
-    mode = ['stand','walk']
-    phase = (['bearing','nonbearing'],['IDS','SS','TDS','SWF','SWE'])
-    this = FSM(mode,phase)    
-    print this.mode
-    print this.phase
-    print this.modephase
-    print this.modemat
-    print this.getModePhaseName()
-    # WalkICmode obtained from Huang et al. paper
-    walkICmode = np.array([[2, 3, 1, 1, 1],
-                           [0.05, 0.05, 0.01, 0.01, 0.01],
-                           [5, 10, 45, 60, 10]]);
-    this.setModeICmat(this.mode[1],walkICmode)                           
-    walkICmode = this.getModeICmat(mode = 'walk')
-    print walkICmode
-#    this.state = [1,2]   
-    this.stateupdate([1,2])
-    print this.state
-    print this.modemat
-    print this.stateIC
-else:
-    pass
+    # Debug circular buffer
+    mybuf = cirBuffer(4)
+    sig = [5, 4, 3, 2, 1, 1, 1, 1, 0, 1, -1, -2, 2, 3, 4, 5]
+    for i in sig:
+        mybuf.append(i)
+        print mybuf.data
+        if not (mybuf.mean is None):
+            print 'Mean: %.2f' % mybuf.mean
+        print 'Is Descending?: %d' % mybuf.isDescend()
+        print 'Is Zeros Crossing?: %d' %mybuf.isZeroCross()         
+#    mode = ['stand','walk']
+#    phase = (['bearing','nonbearing'],['IDS','SS','TDS','SWF','SWE'])
+#    this = FSM(mode,phase)    
+#    print this.mode
+#    print this.phase
+#    print this.modephase
+#    print this.modemat
+#    print this.getModePhaseName()
+#    # WalkICmode obtained from Huang et al. paper
+#    walkICmode = np.array([[2, 3, 1, 1, 1],
+#                           [0.05, 0.05, 0.01, 0.01, 0.01],
+#                           [5, 10, 45, 60, 10]]);
+#    this.setModeICmat(this.mode[1],walkICmode)                           
+#    walkICmode = this.getModeICmat(mode = 'walk')
+#    print walkICmode
+##    this.state = [1,2]   
+#    this.stateupdate([1,2])
+#    print this.state
+#    print this.modemat
+#    print this.stateIC
+#else:
+#    pass

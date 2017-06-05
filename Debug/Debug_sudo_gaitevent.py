@@ -19,55 +19,60 @@ import scipy.io as sio
 import numpy as np
 import matplotlib.pyplot as plt
 from time import sleep
-#import uh_utils as uh
-from FSI_control import *
+import uh_utils as uh
+from FSI_control import cirBuffer
 #==============================================================================
 kinfile = sio.loadmat('Python_acc.mat')
 accarr = kinfile['acc']
 acc = accarr.tolist()
+kinfile = sio.loadmat('Python_footOrientation.mat');
+temp = kinfile['footOrientation']                     
+footOrientation = temp.tolist()
 fs = 30
-plotbuff = cirBuffer(100)
-fig = plt.figure()
-ax = fig.add_subplot(111)
+accbuff = cirBuffer(3)
+oribuff = cirBuffer(3)
+myfilter1 = uh.uh_filter(2,[0.1],30,'high')
+myfilter2 = uh.uh_filter(2,[0.1],30,'high')
+HCcatching = False
+TOcatching = False
+thres = -4
+plt.close()
+myfig = plt.figure()
+myax = plt.gca()
+for i in xrange(2000):
+    accbuff.append(myfilter1.applyFilter(acc[i]))
+    oribuff.append(myfilter2.applyFilter(footOrientation[i]))
+    if not None in accbuff.data:
+        pass
+#        print ['%.2f' %item for item in accbuff.data]
+#        print '%.2f' %accbuff.mean
+    if not HCcatching:
+        if accbuff.mean < thres:
+            if accbuff.isDescend():
+                print 'Waiting for HC'
+                HCcatching = True
+    else:
+        if not accbuff.isDescend():
+            print 'Detected: HC'
+            hcplt = plt.axvline(i,color='r',linestyle = ':')
+            HCcatching = False
+    # Detect Toe-off
+    if not TOcatching:
+        if oribuff.mean < -5:
+            if oribuff.isDescend():
+                print 'Waiting for TO'
+                TOcatching = True
+    else:
+        if not oribuff.isDescend():
+            print 'Detected: TO'
+            toplt = plt.axvline(i,color='g',linestyle = ':')
+            TOcatching = False
 
-# some X and Y data
-x = np.arange(10000)
-y = np.random.randn(10000)
-
-li, = ax.plot(x, y)
-
-# draw and show it
-ax.relim() 
-ax.autoscale_view(True,True,True)
-fig.canvas.draw()
-plt.show(block=False)
-
-# loop to update the data
-while True:
-    try:
-        y[:-10] = y[10:]
-        y[-10:] = np.random.randn(10)
-
-        # set the new data
-        li.set_ydata(y)
-
-        fig.canvas.draw()
-
-        sleep(0.01)
-    except KeyboardInterrupt:
-        break
-#for i in xrange(1000):
-#    plotbuff.append(acc[i])
-#    if not None in plotbuff.data:
-#        plt.plot(plotbuff.data)
-#    plt.cla()
-#    sleep(1/fs)
-#plt.plot(plotbuff.data)    
-#myfilter = uh.uh_filter(2,[0.1,6],30,'bandpass')
-#filtSig = np.zeros((np.size(rawSig),1))
-#for i in range(0,np.size(rawSig)):    
-#    filtSig[i] = myfilter.applyFilter(rawSig[i])
-#plt.figure()
-#plt.plot(acc)
-#plt.show()
+filtacc = myfilter1.applyFilter(acc)
+filtfootOrientation = myfilter2.applyFilter(footOrientation)
+accplot, = plt.plot(filtacc,'b')
+footOriplot, = plt.plot(filtfootOrientation,'k')
+plt.ylabel('Foot Acc and Orientation')
+plt.xlabel('Samples')
+plt.legend([accplot,footOriplot,hcplt,toplt],['Raw Acc_z','Foot Orientation','Heel Contact','Toe Off'],loc='upper right')
 

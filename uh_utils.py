@@ -178,13 +178,13 @@ class uh_filter():
             ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
             filtSig = np.asscalar(ytemp)
         else: 
-            filtSig = [0]*(np.size(inputSig),1)
-            for i in range(np.size(inputSig)):    
+            filtSig = [0]*len(inputSig) # list of zeros
+            for i in range(len(inputSig)):    
                 u = inputSig[i]
                 myXnn = self.Xnn # get current state
                 self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
                 ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
-                filtSig[i] = ytemp.tolist()            
+                filtSig[i] = np.asscalar(ytemp)
         return filtSig
 #==============================================================================
 def quickif(cond, trueval, falseval):

@@ -103,6 +103,7 @@ class FileIO:
         logfile = {} # python dict
         for key in logfileKey:
             logfilename = '%s-T%.2d-%s-%s.txt' %(subjID,trial,tdaystr,key)
+            print 'Make: %s' %logfilename
             logfile[key] = open(os.path.join(subjDirPath,logfilename),'w');
         self.logfile = logfile
         return logfile        

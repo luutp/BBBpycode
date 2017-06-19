@@ -27,37 +27,45 @@ import time
 # Hardware setup
 rst_pin = 'P9_12'
 bno = BNO055.BNO055(rst = rst_pin)
+print(dir(bno))
+print(bno)
+bno.begin()
 # Initialize the BNO055 and stop if something went wrong.
-if not bno.begin():
-    raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
-# Print system status and self test result.
-status, self_test, error = bno.get_system_status()
-print('System status: {0}'.format(status))
-print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
-# Print out an error if system status is in error mode.
-if status == 0x01:
-    print('System error: {0}'.format(error))
-    print('See datasheet section 4.3.59 for the meaning.') 
-# Print BNO055 software revision and other diagnostic data.
-sw, bl, accel, mag, gyro = bno.get_revision()
-print('Software version:   {0}'.format(sw))
-print('Bootloader version: {0}'.format(bl))
-# FileIO setup
-myFile = uh.FileIO(logfilekey = ['IMU'])
-myFile.make_expfiles()
-txtheader = 'Time \t Acc_x \t Acc_y \t Acc_z \t Heading \t Roll \t Pitch \n'
-myFile.logfile['IMU'].write(txtheader)
-timer = time
-start = timer.time()
-print 'START: IMU data collection!'
-try:
-    while(1):
-        timelog = timer.time() - start
-        accx, accy, accz = bno.read_linear_acceleration()
-        heading, roll, pitch = bno.read_euler()
-        myFile.logfile['IMU'].write('%.3f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t \n' \
-                                    %(timelog,accx, accy, accz,\
-                                      heading,roll,pitch))
-except KeyboardInterrupt:
-    myFile.logfile['IMU'].close()
-    print 'EXIT: Data collection completed!'
+#if not bno.begin():
+#    raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
+## Print system status and self test result.
+#status, self_test, error = bno.get_system_status()
+#print('System status: {0}'.format(status))
+#print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
+## Print out an error if system status is in error mode.
+#if status == 0x01:
+#    print('System error: {0}'.format(error))
+#    print('See datasheet section 4.3.59 for the meaning.') 
+## Print BNO055 software revision and other diagnostic data.
+#sw, bl, accel, mag, gyro = bno.get_revision()
+#print('Software version:   {0}'.format(sw))
+#print('Bootloader version: {0}'.format(bl))
+## FileIO setup
+#myFile = uh.FileIO(logfilekey = ['IMU'])
+#myFile.make_expfiles()
+#txtheader = 'Time \t Acc_x \t Acc_y \t Acc_z \t Heading \t Roll \t Pitch \n'
+#myFile.logfile['IMU'].write(txtheader)
+#timer = time
+#start = timer.time()
+#count = 0
+#dispTime = 1*100
+#print 'START: IMU data collection!'
+#try:
+#    while(1):
+#        timelog = timer.time() - start
+#        accx, accy, accz = bno.read_linear_acceleration()
+#        heading, roll, pitch = bno.read_euler()
+##        myFile.logfile['IMU'].write('%.3f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t \n' \
+##                                    %(timelog,accx, accy, accz,\
+##                                      heading,roll,pitch))
+#        if count % dispTime == 0:
+#            print('IMU Logging. Time: {}'.format(timelog))
+#        count+=1
+#except KeyboardInterrupt:
+#    myFile.logfile['IMU'].close()
+#    print 'EXIT: Data collection completed!'

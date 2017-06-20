@@ -47,28 +47,43 @@ def init():
     # Hardware setup
     rst_pin = 'P9_12'
     bno = BNO055.BNO055(rst = rst_pin)
-    # Initialize the BNO055 and stop if something went wrong.
+    import Adafruit_GPIO.Platform as Platform
+    import Adafruit_GPIO.I2C as I2C
+    print('Default Bus:', I2C.get_default_bus())
+    print(dir(bno._i2c_device))
+    print('I2C address: {}'.format(bno._i2c_device._address))
+    bus = bno._i2c_device._bus
+    print('I2C bus: {}'.format(bus))
+    print(dir(bus))
+    print(bus._device)
+    
+#    import Adafruit_GPIO.I2C as I2C
+#    print(I2C.get_default_bus())
+    plat = Platform.platform_detect()
+    print(dir(Platform))
+    print('Platform: 2 for BBB: {}'.format(plat))
+#    # Initialize the BNO055 and stop if something went wrong.
     if not bno.begin():
         raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
-    # Print system status and self test result.
-    status, self_test, error = bno.get_system_status()
-    print('System status: {0}'.format(status))
-    print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
-    # Print out an error if system status is in error mode.
-    if status == 0x01:
-        print('System error: {0}'.format(error))
-        print('See datasheet section 4.3.59 for the meaning.') 
-    # Print BNO055 software revision and other diagnostic data.
-    sw, bl, accel, mag, gyro = bno.get_revision()
-    print('Software version:   {0}'.format(sw))
-    print('Bootloader version: {0}'.format(bl))
-    # FileIO setup
-    myFile = uh.FileIO(subjID = subjID, logfilekey = filekey)
-    myFile.make_expfiles()
-    txtheader = 'Time Acc_x Acc_y Acc_z Heading Roll Pitch \n'
-    myFile.logfile['IMU'].write(txtheader)
-    timer = time
-    return bno, myFile, timer
+#    # Print system status and self test result.
+#    status, self_test, error = bno.get_system_status()
+#    print('System status: {0}'.format(status))
+#    print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
+#    # Print out an error if system status is in error mode.
+#    if status == 0x01:
+#        print('System error: {0}'.format(error))
+#        print('See datasheet section 4.3.59 for the meaning.') 
+#    # Print BNO055 software revision and other diagnostic data.
+#    sw, bl, accel, mag, gyro = bno.get_revision()
+#    print('Software version:   {0}'.format(sw))
+#    print('Bootloader version: {0}'.format(bl))
+#    # FileIO setup
+#    myFile = uh.FileIO(subjID = subjID, logfilekey = filekey)
+#    myFile.make_expfiles()
+#    txtheader = 'Time Acc_x Acc_y Acc_z Heading Roll Pitch \n'
+#    myFile.logfile['IMU'].write(txtheader)
+#    timer = time
+#    return bno, myFile, timer
     
 #==============================================================================
 def streamData(**kwargs):
@@ -164,7 +179,8 @@ def plot(**kwargs):
 
 #==============================================================================
 def main():
-    streamData()
+    init()
+#    streamData()
 #    plot() 
     
 #==============================================================================

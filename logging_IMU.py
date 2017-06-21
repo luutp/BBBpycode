@@ -26,11 +26,13 @@ import time, datetime, pytz
 import os, inspect
 import pandas as pd
 import matplotlib.pyplot as plt
+import Adafruit_GPIO.I2C as I2C
 #==============================================================================
 subjID = 'UH_IMUtest' # Data will be store in subj ID folder
 filekey = ['IMU'] # list of file to record
 expdataDir = 'Exp Data'
-
+PLATFORM = ['BBB', 'BBB_WIFI'] # BBB or BBB_WIFI. option to set I2C bus.
+#==============================================================================
 def get_timenow(key='%H:%M:%S'):
     '''
     %Y : YY; %m: mm; %d: dd
@@ -38,52 +40,58 @@ def get_timenow(key='%H:%M:%S'):
     '''
     timenow = datetime.datetime.now(pytz.timezone('US/Central'))
     return timenow.strftime(key)
+    
+#==============================================================================
 def print_stack():
     print('{}- Running: {}...'.format(get_timenow('%H:%M:%S'),
           inspect.stack()[1][3]),
           )      
+          
+#==============================================================================
+def get_platform():
+    # Check if device is BBB or BBB Wifi with Wlan feature
+    bbb = PLATFORM[0] # Default as BeagleBone black
+    wifiInfo = '/proc/net/wireless'
+    fid = open(wifiInfo)
+    for line in fid:
+        if 'wlan0' in line:
+            bbb = PLATFORM[1]
+    print('Device: {}'.format(bbb))
+    fid.close()
+    return bbb
+    
 #==============================================================================
 def init():
-    # Hardware setup
+    # Setup I2C connection with BNO055
     rst_pin = 'P9_12'
-    bno = BNO055.BNO055(rst = rst_pin)
-    import Adafruit_GPIO.Platform as Platform
-    import Adafruit_GPIO.I2C as I2C
-    print('Default Bus:', I2C.get_default_bus())
-    print(dir(bno._i2c_device))
-    print('I2C address: {}'.format(bno._i2c_device._address))
-    bus = bno._i2c_device._bus
-    print('I2C bus: {}'.format(bus))
-    print(dir(bus))
-    print(bus._device)
-    
-#    import Adafruit_GPIO.I2C as I2C
-#    print(I2C.get_default_bus())
-    plat = Platform.platform_detect()
-    print(dir(Platform))
-    print('Platform: 2 for BBB: {}'.format(plat))
-#    # Initialize the BNO055 and stop if something went wrong.
+    device = get_platform()
+    if device == PLATFORM[0]: # BBB
+        bno = BNO055.BNO055(rst = rst_pin) # I2C2 bus number is 1
+    elif device == PLATFORM[1]: #BBB_WIFI
+    # Modify BNO055.py from Adafruit by adding kw argument busnum = None
+        bno = BNO055.BNO055(rst = rst_pin, busnum = 2) # I2C2 bus number is 2
+    # Initialize the BNO055 and stop if something went wrong.
     if not bno.begin():
         raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
-#    # Print system status and self test result.
-#    status, self_test, error = bno.get_system_status()
-#    print('System status: {0}'.format(status))
-#    print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
-#    # Print out an error if system status is in error mode.
-#    if status == 0x01:
-#        print('System error: {0}'.format(error))
-#        print('See datasheet section 4.3.59 for the meaning.') 
-#    # Print BNO055 software revision and other diagnostic data.
-#    sw, bl, accel, mag, gyro = bno.get_revision()
-#    print('Software version:   {0}'.format(sw))
-#    print('Bootloader version: {0}'.format(bl))
-#    # FileIO setup
-#    myFile = uh.FileIO(subjID = subjID, logfilekey = filekey)
-#    myFile.make_expfiles()
-#    txtheader = 'Time Acc_x Acc_y Acc_z Heading Roll Pitch \n'
-#    myFile.logfile['IMU'].write(txtheader)
-#    timer = time
-#    return bno, myFile, timer
+    # Print system status and self test result.
+    status, self_test, error = bno.get_system_status()
+    print('System status: {0}'.format(status))
+    print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
+    # Print out an error if system status is in error mode.
+    if status == 0x01:
+        print('System error: {0}'.format(error))
+        print('See datasheet section 4.3.59 for the meaning.') 
+    # Print BNO055 software revision and other diagnostic data.
+    sw, bl, accel, mag, gyro = bno.get_revision()
+    print('Software version:   {0}'.format(sw))
+    print('Bootloader version: {0}'.format(bl))
+    # FileIO setup
+    myFile = uh.FileIO(subjID = subjID, logfilekey = filekey)
+    myFile.make_expfiles()
+    txtheader = 'Time Acc_x Acc_y Acc_z Heading Roll Pitch \n'
+    myFile.logfile['IMU'].write(txtheader)
+    timer = time
+    return bno, myFile, timer
     
 #==============================================================================
 def streamData(**kwargs):
@@ -111,7 +119,7 @@ def streamData(**kwargs):
                                         %(timelog,accx, accy, accz,\
                                           heading,roll,pitch))
             if opt['verbose'] is True:
-                if count%100 ==  0:
+                if count % 100 ==  0:
                     print('{}- Streaming IMU- Head: {}; Roll: {}; Pitch: {}...'.format(float("{0:.2f}".format(timelog)),
                           int(heading), int(roll), int(pitch)))
                 count+=1
@@ -179,8 +187,8 @@ def plot(**kwargs):
 
 #==============================================================================
 def main():
-    init()
-#    streamData()
+#    init()
+    streamData()
 #    plot() 
     
 #==============================================================================

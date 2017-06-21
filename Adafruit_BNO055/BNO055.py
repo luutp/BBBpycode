@@ -213,7 +213,7 @@ logger = logging.getLogger(__name__)
 class BNO055(object):
 
     def __init__(self, rst=None, address=BNO055_ADDRESS_A, i2c=None, gpio=None,
-                 serial_port=None, serial_timeout_sec=5, **kwargs):
+                 serial_port=None, busnum= None, serial_timeout_sec=5, **kwargs):
         # If reset pin is provided save it and a reference to provided GPIO
         # bus (or the default system GPIO bus if none is provided).
         self._rst = rst
@@ -242,7 +242,7 @@ class BNO055(object):
                 import Adafruit_GPIO.I2C as I2C
                 i2c = I2C
             # Save a reference to the I2C device instance for later communication.
-            self._i2c_device = i2c.get_i2c_device(address, **kwargs)
+            self._i2c_device = i2c.get_i2c_device(address, busnum, **kwargs)
 
     def _serial_send(self, command, ack=True, max_attempts=5):
         # Send a serial command and automatically handle if it needs to be resent

@@ -175,16 +175,33 @@ class uh_filter():
         if np.size(inputSig) == 1: 
             u = inputSig # Handle scalar case
             myXnn = self.Xnn # get current state
-            self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
-            ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+#            self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
+#            ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+            self.Xnn = np.add(matmult(self.A,myXnn), self.B*u)
+            ytemp = np.add(matmult(self.C,myXnn),self.D*u)
+            print('A:')
+            print(self.A)
+            print('B:')
+            print(self.B)
+            print('C:')
+            print(self.C)
+            print('D:')
+            print(self.D)
+            print('Xnn:')
+            print(myXnn)
+            print('Cx:')
+            print(matmult(self.C, myXnn))
+            print(ytemp)
             filtSig = np.asscalar(ytemp)
         else: 
             filtSig = [0]*len(inputSig) # list of zeros
             for i in range(len(inputSig)):    
                 u = inputSig[i]
                 myXnn = self.Xnn # get current state
-                self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
-                ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+#                self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
+#                ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+                self.Xnn = np.add(matmult(self.A, myXnn), self.B*u)
+                ytemp = np.add(matmult(self.C, myXnn), self.D*u)
                 filtSig[i] = np.asscalar(ytemp)
         return filtSig
 #==============================================================================
@@ -198,10 +215,21 @@ def quickif(cond, trueval, falseval):
         return trueval
     else:
         return falseval
+        
+#==============================================================================
+def matmult(a,b):
+    zip_b = zip(*b)
+    return[[sum(ai*bi for ai,bi in zip(row_a,col_b))
+            for col_b in zip_b] for row_a in a]
 #==============================================================================
 # Debug 
 #==============================================================================
 if __name__ == "__main__":
-    pass
-else:
-    pass    
+#    pass
+#    x=[[1,2,3],[4,5,6],[7,8,9],[10,11,12]]    
+#    y=[[1,2],[1,2],[3,4]]  
+    x =[[1,2]]
+    y = [[2],[1]]
+    print(matmult(x,y))
+    
+    

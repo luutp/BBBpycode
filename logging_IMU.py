@@ -27,6 +27,8 @@ import os, inspect
 import pandas as pd
 import matplotlib.pyplot as plt
 import Adafruit_GPIO.I2C as I2C
+from FSI_control import cirBuffer
+
 #==============================================================================
 subjID = 'UH_IMUtest' # Data will be store in subj ID folder
 filekey = ['IMU'] # list of file to record
@@ -88,7 +90,7 @@ def init():
     # FileIO setup
     myFile = uh.FileIO(subjID = subjID, logfilekey = filekey)
     myFile.make_expfiles()
-    txtheader = 'Time Acc_x Acc_y Acc_z Heading Roll Pitch \n'
+    txtheader = 'Time Acc_x Acc_y Acc_z Heading Roll Pitch gaitEvent\n'
     myFile.logfile['IMU'].write(txtheader)
     timer = time
     return bno, myFile, timer
@@ -97,32 +99,75 @@ def init():
 def streamData(**kwargs):
     print_stack()
     # Parsers
-    opt = {'verbose':False,
+    varargin = {'verbose':False,
            'gc': False}        
     if kwargs: # if no input is given
-        opt.update((key, kwargs[key])
+        varargin.update((key, kwargs[key])
                             for key in ('verbose','gc')
                             if key in kwargs
                             )
-    print('Input Args: {}'.format(opt))
+    print('Input Args: {}'.format(varargin))
     bno, myFile, timer = init()
     start = timer.time()
     count = 0
     print 'START: IMU data collection!'
-    try:
-        while(1):
-            timelog = timer.time() - start
-            accx, accy, accz = bno.read_linear_acceleration()
-            
-            heading, roll, pitch = bno.read_euler()
-            myFile.logfile['IMU'].write('%.2f %.2f %.2f %.2f %.2f %.2f %.2f \n' \
-                                        %(timelog,accx, accy, accz,\
-                                          heading,roll,pitch))
-            if opt['verbose'] is True:
-                if count % 100 ==  0:
-                    print('{}- Streaming IMU- Head: {}; Roll: {}; Pitch: {}...'.format(float("{0:.2f}".format(timelog)),
-                          int(heading), int(roll), int(pitch)))
-                count+=1
+    try:        
+        if varargin['gc'] is False:
+            while(1):
+                timelog = timer.time() - start
+                accx, accy, accz = bno.read_linear_acceleration()
+                heading, roll, pitch = bno.read_euler()
+                myFile.logfile['IMU'].write('%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n' \
+                                            %(timelog,accx, accy, accz,\
+                                              heading,roll,pitch,\
+                                              0))
+                if varargin['verbose'] is True:
+                    if count % 100 ==  0:
+                        print('{}- Streaming IMU- Head: {}; Roll: {}; Pitch: {}...'.format(float("{0:.2f}".format(timelog)),
+                              int(heading), int(roll), int(pitch)))
+                    count+=1
+        else:
+            fs = 100
+            accbuff = cirBuffer(3)
+            oribuff = cirBuffer(3)
+            myfilter1 = uh.uh_filter(2,[0.1],fs,'high')
+            myfilter2 = uh.uh_filter(2,[0.1],fs,'high')
+            HCcatching = False
+            TOcatching = False
+            while(1):
+                timelog = timer.time() - start
+                accx, accy, accz = bno.read_linear_acceleration()
+                heading, roll, pitch = bno.read_euler()
+                accbuff.append(myfilter1.applyFilter(accz))
+                oribuff.append(myfilter2.applyFilter(roll))
+                gcEvent = 0
+                if not HCcatching:
+                    if accbuff.mean < -4:
+                        if accbuff.isDescend():
+                            HCcatching = True
+                else:
+                    if not accbuff.isDescend():
+                        print 'Detected: HC'
+                        gcEvent = 1
+                        HCcatching = False
+                # Detect Toe-off
+                if not TOcatching:
+                    if oribuff.mean < -5:
+                        if oribuff.isDescend():
+                            TOcatching = True
+                else:
+                    if not oribuff.isDescend():
+                        print 'Detected: TO'
+                        gcEvent = 4
+                myFile.logfile['IMU'].write('%.2f %.2f %.2f %.2f %.2f %.2f %.2f %d \n' \
+                                            %(timelog,accx, accy, accz,\
+                                              heading,roll,pitch,\
+                                              gcEvent))
+                if varargin['verbose'] is True:
+                    if count % 100 ==  0:
+                        print('{}- Streaming IMU- Head: {}; Roll: {}; Pitch: {}...'.format(float("{0:.2f}".format(timelog)),
+                              int(heading), int(roll), int(pitch)))
+                    count+=1
     except KeyboardInterrupt:
         myFile.logfile['IMU'].close()
         print 'EXIT: Data collection completed!'
@@ -179,16 +224,55 @@ def plot(**kwargs):
     print('Filename: {}'.format(filename))
     fullfilename = os.path.join(get_datadir(),filename)
     pddf = pd.read_csv(fullfilename,sep = " ", header = 0)
-    plt.plot(pddf['Time'], pddf['Acc_z'],'r')
-    plt.plot(pddf['Time'], pddf['Roll'])
+    plt.plot(pddf['Time'], pddf['Acc_z'],'b')
+    plt.plot(pddf['Time'], pddf['Roll'],'g')
     plt.legend(['Acc_z', 'Roll'])
+#    for idx, gc in enumerate(pddf['gaitEvent']):
+#        if gc == 1:
+#            plt.axvline(pddf['Time'][idx],color='r',linewidth = 1.5)
+#        elif gc ==4:
+#            plt.axvline(pddf['Time'][idx],color='k',linewidth = 0.75)
+                
     plt.show()
     return 1
-
+    
+#==============================================================================
+def read_txt(**kwargs):
+    '''
+    Plot the most updated data if no input argument
+    
+    Optional input arguments:
+        
+        'trial' = 
+        
+        'filename' = 
+    '''
+    # Get the most current data file or input filename
+    if os.path.isdir(get_datadir()):
+        filelist = os.listdir(get_datadir())
+        filelist = sorted(filelist)
+    else:
+        print('{} data folder is not exist'.format(get_datadir().split('/')[-1]))
+        return 0
+    if not kwargs:
+        filename = filelist[-1]
+    else:
+        for key, val in kwargs.items():
+            if key.lower() == 'trial':
+                filename = filelist[val]
+            if key.lower() == 'filename':
+                filename = val
+    print('Filename: {}'.format(filename))
+    fullfilename = os.path.join(get_datadir(),filename)
+    fid = open(fullfilename)
+    for line in fid:
+        print(line)
+    fid.close()
+    
 #==============================================================================
 def main():
 #    init()
-    streamData()
+    streamData(verbose=True, gc = True)
 #    plot() 
     
 #==============================================================================

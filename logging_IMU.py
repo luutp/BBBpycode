@@ -134,6 +134,7 @@ def streamData(**kwargs):
             myfilter2 = uh.uh_filter(2,[0.1],fs,'high')
             HCcatching = False
             TOcatching = False
+            lastEvent = 4
             while(1):
                 timelog = timer.time() - start
                 accx, accy, accz = bno.read_linear_acceleration()
@@ -142,23 +143,28 @@ def streamData(**kwargs):
                 oribuff.append(myfilter2.applyFilter(roll))
                 gcEvent = 0
                 if not HCcatching:
-                    if accbuff.mean < -4:
-                        if accbuff.isDescend():
+                    if oribuff.mean > 10:
+                        if oribuff.isAscend():
                             HCcatching = True
                 else:
-                    if not accbuff.isDescend():
-                        print 'Detected: HC'
-                        gcEvent = 1
+                    if oribuff.isDescend():
+                        if lastEvent == 4:
+                            print 'Detected: HC'
+                            gcEvent = 1
+                            lastEvent = 1
                         HCcatching = False
                 # Detect Toe-off
                 if not TOcatching:
-                    if oribuff.mean < -5:
+                    if oribuff.mean < -15:
                         if oribuff.isDescend():
                             TOcatching = True
                 else:
-                    if not oribuff.isDescend():
-                        print 'Detected: TO'
-                        gcEvent = 4
+                    if oribuff.isAscend():
+                        if lastEvent == 1:
+                            print 'Detected: TO'
+                            gcEvent = 4
+                            lastEvent = 4
+                        TOcatching = False
                 myFile.logfile['IMU'].write('%.2f %.2f %.2f %.2f %.2f %.2f %.2f %d\n'\
                                             %(timelog,accx, accy, accz,\
                                               heading,roll,pitch,\
@@ -214,6 +220,79 @@ def del_files(**kwargs):
                 filename = val
     for f in filename:
         os.remove(os.path.join(get_datadir(),f))
+        
+#==============================================================================
+def psudo_gc(**kwargs):
+        # Get the most current data file or input filename
+    if os.path.isdir(get_datadir()):
+        filelist = os.listdir(get_datadir())
+        filelist = sorted(filelist)
+    else:
+        print('{} data folder is not exist'.format(get_datadir().split('/')[-1]))
+        return 0
+    if not kwargs:
+        filename = filelist[-1]
+    else:
+        for key, val in kwargs.items():
+            if key.lower() == 'trial':
+                filename = filelist[val]
+            if key.lower() == 'filename':
+                filename = val
+    print('Filename: {}'.format(filename))
+    fullfilename = os.path.join(get_datadir(),filename)
+    pddf = pd.read_csv(fullfilename,sep = " ", header = 0)
+    
+    acczLog = pddf['Acc_z']
+    rollLog = pddf['Roll']
+    timeLog = pddf['Time']
+    fs = 100
+    accbuff = cirBuffer(3)
+    oribuff = cirBuffer(3)
+    myfilter1 = uh.uh_filter(2,[0.1],fs,'high')
+    myfilter2 = uh.uh_filter(2,[0.1],fs,'high')
+    HCcatching = False
+    TOcatching = False
+    gcEventList = []
+    lastEvent = 4
+    for idx, t in enumerate(timeLog):
+        accz = acczLog[idx]
+        roll = rollLog[idx]
+        accbuff.append(myfilter1.applyFilter(accz))
+        oribuff.append(myfilter2.applyFilter(roll))
+        gcEvent = 0
+        if not HCcatching:
+            if oribuff.mean > 10:
+                if oribuff.isAscend():
+                    HCcatching = True
+        else:
+            if oribuff.isDescend():
+                if lastEvent == 4:
+                    print 'Detected: HC'
+                    gcEvent = 1
+                    lastEvent = 1
+                HCcatching = False
+        # Detect Toe-off
+        if not TOcatching:
+            if oribuff.mean < -15:
+                if oribuff.isDescend():
+                    TOcatching = True
+        else:
+            if oribuff.isAscend():
+                if lastEvent == 1:
+                    print 'Detected: TO'
+                    gcEvent = 4
+                    lastEvent = 4
+                TOcatching = False
+        gcEventList.append(gcEvent)
+    plt.plot(timeLog, acczLog,'b')
+    plt.plot(timeLog, rollLog,'g')
+    plt.legend(['Acc_z', 'Roll'])
+    for idx, gc in enumerate(gcEventList):
+        if gc == 1:
+            plt.axvline(timeLog[idx],color='r',linewidth = 1.5)
+        elif gc ==4:
+            plt.axvline(timeLog[idx],color='k',linewidth = 0.75)
+    plt.show()
                 
 #==============================================================================
 def plot(**kwargs):
@@ -292,8 +371,9 @@ def read_txt(**kwargs):
 #==============================================================================
 def main():
 #    init()
-    streamData(verbose=True, gc = True)
-#    plot() 
+#    streamData(verbose=True, gc = True)
+    plot() 
+#    psudo_gc()
     
 #==============================================================================
 if __name__ == '__main__':

@@ -159,7 +159,7 @@ def streamData(**kwargs):
                     if not oribuff.isDescend():
                         print 'Detected: TO'
                         gcEvent = 4
-                myFile.logfile['IMU'].write('%.2f %.2f %.2f %.2f %.2f %.2f %.2f %d \n' \
+                myFile.logfile['IMU'].write('%.2f %.2f %.2f %.2f %.2f %.2f %.2f %d\n'\
                                             %(timelog,accx, accy, accz,\
                                               heading,roll,pitch,\
                                               gcEvent))
@@ -194,7 +194,27 @@ def list_files():
         subindent = ' ' * 4 * (level + 1)
         for f in files:
             print('{}{}'.format(subindent, f))
-    
+
+#==============================================================================
+def del_files(**kwargs):
+    # Get the most current data file or input filename
+    if os.path.isdir(get_datadir()):
+        filelist = os.listdir(get_datadir())
+        filelist = sorted(filelist)
+    else:
+        print('{} data folder is not exist'.format(get_datadir().split('/')[-1]))
+        return 0
+    if not kwargs:
+        filename = filelist
+    else:
+        for key, val in kwargs.items():
+            if key.lower() == 'trial':
+                filename = filelist[val]
+            if key.lower() == 'filename':
+                filename = val
+    for f in filename:
+        os.remove(os.path.join(get_datadir(),f))
+                
 #==============================================================================
 def plot(**kwargs):
     '''
@@ -227,11 +247,11 @@ def plot(**kwargs):
     plt.plot(pddf['Time'], pddf['Acc_z'],'b')
     plt.plot(pddf['Time'], pddf['Roll'],'g')
     plt.legend(['Acc_z', 'Roll'])
-#    for idx, gc in enumerate(pddf['gaitEvent']):
-#        if gc == 1:
-#            plt.axvline(pddf['Time'][idx],color='r',linewidth = 1.5)
-#        elif gc ==4:
-#            plt.axvline(pddf['Time'][idx],color='k',linewidth = 0.75)
+    for idx, gc in enumerate(pddf['gaitEvent']):
+        if gc == 1:
+            plt.axvline(pddf['Time'][idx],color='r',linewidth = 1.5)
+        elif gc ==4:
+            plt.axvline(pddf['Time'][idx],color='k',linewidth = 0.75)
                 
     plt.show()
     return 1

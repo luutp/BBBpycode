@@ -102,7 +102,7 @@ class FileIO:
         # Create filename            
         logfile = {} # python dict
         for key in logfileKey:
-            logfilename = '%s-T%.2d-%s-%s.txt' %(subjID,trial,tdaystr,key)
+            logfilename = '%s-%s-T%.2d-%s.txt' %(subjID,tdaystr,trial,key)
             print 'Make: %s' %logfilename
             logfile[key] = open(os.path.join(subjDirPath,logfilename),'w');
         self.logfile = logfile
@@ -175,33 +175,18 @@ class uh_filter():
         if np.size(inputSig) == 1: 
             u = inputSig # Handle scalar case
             myXnn = self.Xnn # get current state
-#            self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
-#            ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
-            self.Xnn = np.add(matmult(self.A,myXnn), self.B*u)
-            ytemp = np.add(matmult(self.C,myXnn),self.D*u)
-            print('A:')
-            print(self.A)
-            print('B:')
-            print(self.B)
-            print('C:')
-            print(self.C)
-            print('D:')
-            print(self.D)
-            print('Xnn:')
-            print(myXnn)
-            print('Cx:')
-            print(matmult(self.C, myXnn))
-            print(ytemp)
+            self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
+            ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
             filtSig = np.asscalar(ytemp)
         else: 
             filtSig = [0]*len(inputSig) # list of zeros
             for i in range(len(inputSig)):    
                 u = inputSig[i]
                 myXnn = self.Xnn # get current state
-#                self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
-#                ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
-                self.Xnn = np.add(matmult(self.A, myXnn), self.B*u)
-                ytemp = np.add(matmult(self.C, myXnn), self.D*u)
+                self.Xnn = np.add(np.matmul(self.A,myXnn), self.B*u) # State updated
+                ytemp = np.add(np.matmul(self.C,myXnn), self.D*u)
+#                self.Xnn = np.add(matmult(self.A, myXnn), self.B*u)
+#                ytemp = np.add(matmult(self.C, myXnn), self.D*u)
                 filtSig[i] = np.asscalar(ytemp)
         return filtSig
 #==============================================================================

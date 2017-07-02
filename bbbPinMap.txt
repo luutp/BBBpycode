@@ -5,5 +5,19 @@
 # University of Houston
 # PIN map for Beaglebone Black
 # Peripheral Name(sensors/actuators)	\TAB PIN_ID	Note
-SwitchFW	P9_27	% Forward limit switch 
-SwitchRW	P9_30	% Reverse limit switch
+#
+# Limit Switch
+SW_FW	P9_27	% Forward limit switch 
+SW_RV	P9_30	% Reverse limit switch
+# Emergengy Stop
+ESTOP	Px_xx	% Estop button
+# Brushless DCMotor 1
+EC1_DIR	Px_xx	% Control Motor 1 Direction
+EC1_ENA	Px_xx	% Enable/Disable Motor 1
+EC1_BRK	Px_xx	% Break Motor 1
+PWM1	Px_xx	% PWM output to Motor 1
+# Encoder 1
+ENC1_CS	Px_xx	% Encoder Chip Select Pin
+ENC1_CLK	Px_xx	% Encoder CLocK Pin
+ENC1_DO	Px_xx	% Encoder Data Out Pin
+

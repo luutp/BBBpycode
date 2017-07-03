@@ -96,6 +96,56 @@ class mainBoard(object,utils.parentClass):
         return temp
     
 #==============================================================================
+# METHODS
+def set_GPIO(pin, DIOtype):
+    '''
+    Set a GPIO to INPUT or OUTPUT pin
+    '''
+    if DIOtype == 'IN': 
+        pass
+#        GPIO.setup(pin, GPIO.IN)
+    elif DIOtype == 'OUT':
+#        GPIO.setup(pin, GPIO.OUT)
+        pass
+    else:
+        print('Input Option: {} is not valid. Only ''IN'' or ''OUT'' is accepted'.format(DIOtype))
+
+def setup_ADC():
+    pass
+#    ADC.setup():
+          
+def setHIGH(pin):
+    '''
+    Set a Digital Pin to HIGH
+    '''
+    pass
+#   GPIO.output(pin, GPIO.HIGH)
+
+def setLOW(pin):
+    '''
+    Set a Digitial Pin to LOW
+    '''
+    pass
+#   GPIO.output(pin, GPIO.LOW)
+
+def get_DI(pin):
+    '''
+    Get Values from Digital INput pin
+    '''
+    pass
+#   GPIO.input(pin)
+
+def get_ADC(pin): 
+    pass
+#    return ADC.read(pin)  
+
+def cleanup():
+#   GPIO.cleanup()
+#   PWM.cleanup()
+#   ADC.cleanup()
+    pass
+    
+#==============================================================================
 def get_bbbplatform():
     PLATFORM = ['BBB', 'BBB_WIFI'] # BBB or BBB_WIFI. option to set I2C bus.
     # Check if device is BBB or BBB Wifi with Wlan feature
@@ -264,6 +314,7 @@ def main():
     myboard = mainBoard()
     utils.printlist(get_expfiles(subjID = 'UH_AB_02'))
     myboard.print_Me()   
+    set_GPIO(myboard.pinmap['SW_FW'],'IN')
 #==============================================================================
 if __name__ == '__main__':
     main()

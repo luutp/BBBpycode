@@ -19,7 +19,7 @@
 # SCL to P9_19 on BBB, I2C2_SCL
 # RST: Reset pin to P9_12 on BBB
 # Pinout Ref: https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/pinouts
-from sensors import *
+#from sensors import *
 from Adafruit_BNO055 import BNO055
 import uh_utils as uh
 import time, datetime, pytz
@@ -370,9 +370,9 @@ def read_txt(**kwargs):
     
 #==============================================================================
 def main():
-#    init()
+    init()
 #    streamData(verbose=True, gc = True)
-    plot() 
+#    plot() 
 #    psudo_gc()
     
 #==============================================================================
